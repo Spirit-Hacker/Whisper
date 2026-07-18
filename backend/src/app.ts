@@ -3,10 +3,12 @@ import userRoutes from "./routes/userRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import authRoutes from "./routes/authRoutes";
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
