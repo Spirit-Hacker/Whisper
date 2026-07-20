@@ -1,0 +1,36 @@
+import type { Request, Response, NextFunction } from "express";
+import { getAuth } from "@clerk/express";
+import { User } from "../models/User";
+import { requireAuth } from "@clerk/express";
+
+export type AuthRequest = Request & {
+  userId?: string;
+};
+
+export const protectRoute = [
+  requireAuth(), // Ensure the user is authenticated
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { userId: clerkId } = getAuth(req);
+      if (!clerkId) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized - Invalid token" });
+      }
+
+      const user = await User.findOne({ clerkId });
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: "Unauthorized - User not found" });
+      }
+
+      req.userId = user._id.toString();
+
+      next();
+    } catch (error) {
+      console.error("Error in protectRoute middleware:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  },
+];
